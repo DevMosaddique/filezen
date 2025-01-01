@@ -7,8 +7,10 @@ import hashlib
 base_dir = '/storage/emulated/0'
 target_dir = '/storage/emulated/0/Organized'
 
-EXCLUDE_FOLDERS = ["Android", "DCIM", "Organized", "Ncert_Book", "Notes", "Acode"]
-
+# List of folders to exclude from the organization process
+# Note: It's crucial to exclude 'Android', 'Organized' and 'DCIM' to avoid unwanted changes.
+# example: EXCLUDE_FOLDERS = ["Android", "DCIM", "Organized", "Ncert_Book", "Notes", "Acode"]
+EXCLUDE_FOLDERS = ["Android", "DCIM", "Organized"]
 fileFormat = {
     "Documents": [".pdf", ".doc", ".docx", ".txt", ".rtf", ".odt", ".xls", ".xlsx", ".csv", ".ppt", ".pptx", ".tex", ".epub", ".log"],
     "Images": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".svg", ".webp", ".psd", ".ico", ".heif"],
@@ -41,7 +43,7 @@ def remove_duplicates(base_dir):
     duplicates = []  # List of duplicate file paths
 
     for root, dirs, files in os.walk(base_dir, topdown=True):
-        dirs[:] = [d for d in dirs if d not in EXCLUDE_FOLDERS]
+        dirs[:] = [d for d in dirs if d not in EXCLUDE_FOLDERS]  # Exclude specified folders
 
         for file in files:
             file_path = os.path.join(root, file)
@@ -63,14 +65,14 @@ def organize_files(base_dir, target_dir):
         os.makedirs(target_dir)
 
     for root, dirs, files in os.walk(base_dir, topdown=True):
-        dirs[:] = [d for d in dirs if d not in EXCLUDE_FOLDERS]
+        dirs[:] = [d for d in dirs if d not in EXCLUDE_FOLDERS]  # Exclude specified folders
 
         for file in files:
             file_path = os.path.join(root, file)
             fileName = pathlib.Path(file_path)
             fileFormatType = fileName.suffix.lower()
 
-            dest = os.path.join(target_dir, "Other")  # Default destination
+            dest = os.path.join(target_dir, "Other")
 
             if fileFormatType:
                 for category, extensions in fileFormat.items():
@@ -87,21 +89,20 @@ def organize_files(base_dir, target_dir):
                 print(f"Failed to move {file_path}: {e}")
 
 def delete_empty_folders(base_dir):
-    for root, dirs, files in os.walk(base_dir, topdown=False):  # Reverse order
+    for root, dirs, files in os.walk(base_dir, topdown=False):
         for dir in dirs:
             dir_path = os.path.join(root, dir)
             try:
-                if not os.listdir(dir_path):
+                if not os.listdir(dir_path):  # Check if directory is empty
                     os.rmdir(dir_path)
             except PermissionError:
                 pass
             except Exception as e:
                 print(f"Failed to delete {dir_path}: {e}")
 
-# Remove duplicates first[1] ==> Delete empty folders after organizing[1]
-remove_duplicates(base_dir)  # 1
+remove_duplicates(base_dir)  # Remove duplicates
 organize_files(base_dir, target_dir)
-delete_empty_folders(base_dir)  # 2
+delete_empty_folders(base_dir)  # Delete empty folders
 
 print("File organization completed.")
 input("\nPress Enter to exit.")
